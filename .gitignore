@@ -36,3 +36,6 @@ lerna-debug.log*
 
 # .env
 .env
+
+# generated prisma migrations folder
+**/prisma/migrations/
