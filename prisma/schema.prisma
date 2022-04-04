@@ -11,30 +11,22 @@ datasource db {
 }
 
 model Match {
-    matchId String @id
-    gameDuration BigInt
-    gameCreation BigInt
-    gameEndTimestamp BigInt
-    gameId BigInt
-    gameName String
-    gameType String
-    gameMode String
-    queueId Int
-    matchSummonerLink MatchSummonerLink[]
-    mapId Int?
+  matchId          String     @id
+  gameDuration     BigInt
+  gameCreation     BigInt
+  gameEndTimestamp BigInt
+  gameId           BigInt
+  gameName         String
+  gameType         String
+  gameMode         String
+  queueId          Int
+  summoner         Summoner[]
+  mapId            Int?
 }
 
-model Account {
-    puuid String @id
-    gameName String 
-    tagLine String
-    matchSummonerLink MatchSummonerLink[]
-}
-
-model MatchSummonerLink {
-    account Account @relation(fields: [puuid], references: [puuid])
-    match Match @relation(fields: [matchId], references: [matchId])
-    puuid String 
-    matchId String
-    @@id([puuid, matchId])
+model Summoner {
+  puuid    String  @id
+  gameName String
+  tagLine  String
+  matches  Match[]
 }
