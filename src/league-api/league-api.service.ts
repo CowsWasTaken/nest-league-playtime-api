@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 // TODO migrate to HttpClientModule provided by Nest
 import { RateLimiter } from 'limiter';
@@ -14,8 +13,8 @@ import {
 
 @Injectable()
 export class LeagueApiService {
-  constructor(private config: ConfigService) {
-    const api_key = this.config.get('API_KEY');
+  constructor() {
+    const api_key = process.env.API_KEY;
     this.api_query = `api_key=${api_key}`;
   }
 
@@ -111,11 +110,7 @@ export class LeagueApiService {
         console.log(`Fetched Match: ${matchId} `);
         return response.data as MatchDto;
       })
-      .catch((err) => {
-        const headers = err.response.headers;
-        const retryAfter: number = +headers['retry-after'];
-        return Promise.reject({ status: 429, retryAfter });
-      });
+      .catch((err) => Promise.reject(err));
   }
 
   private createBaseUrl(hostValue: HostValue): string {
