@@ -1,6 +1,6 @@
-import { HostValue } from './HostValue';
+import { HostValue } from '../models/HostValue';
 
-export const RegionalHostValue: HostValue[] = [
+export const RegionalHostValues: HostValue[] = [
   {
     region: 'AMERICAS',
     host: 'americas.api.riotgames.com',
