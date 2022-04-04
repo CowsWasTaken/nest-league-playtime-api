@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { HostValue } from 'src/constants/HostValue';
-import { RateLimitError } from 'src/errors/RateLimitError';
+// TODO migrate to HttpClientModule provided by Nest
+import { RateLimiter } from 'limiter';
+import { HostValue } from 'src/models/HostValue';
+import { LeagueApiConstants } from 'src/constants/LeagueApiConstants';
 import {
   MatchDto,
   MatchQueryParameter,
@@ -16,6 +18,16 @@ export class LeagueApiService {
     const api_key = this.config.get('API_KEY');
     this.api_query = `api_key=${api_key}`;
   }
+
+  private limiterPerMinute = new RateLimiter({
+    tokensPerInterval: LeagueApiConstants.rateLimitPerMinute,
+    interval: 'minute',
+  });
+
+  private limiterPerSecond = new RateLimiter({
+    tokensPerInterval: LeagueApiConstants.rateLimitPerSecond,
+    interval: 'second',
+  });
 
   private protocol = 'https';
   private api_query: string;
@@ -33,6 +45,8 @@ export class LeagueApiService {
     gameName: string,
     tagLine: string,
   ): Promise<SummonerDto> {
+    this.removeTokens();
+
     return axios
       .get(
         `${this.createBaseUrl(
@@ -61,6 +75,7 @@ export class LeagueApiService {
     puuid: string,
     matchQueryParameter?: MatchQueryParameter,
   ): Promise<string[]> {
+    this.removeTokens();
     let playerMatches_API_CALL = `${this.createBaseUrl(
       hostValue,
     )}/lol/match/v5/matches/by-puuid/${puuid}/ids?${this.api_query}`; // creates api call
@@ -85,6 +100,7 @@ export class LeagueApiService {
    * @param matchId id of the match
    */
   async getMatch(hostValue: HostValue, matchId: string): Promise<MatchDto> {
+    this.removeTokens();
     return axios
       .get(
         `${this.createBaseUrl(hostValue)}/lol/match/v5/matches/${matchId}?${
@@ -104,5 +120,13 @@ export class LeagueApiService {
 
   private createBaseUrl(hostValue: HostValue): string {
     return `${this.protocol}://${hostValue.host}`;
+  }
+
+  /**
+   * this should be called before making an http request, to ensure the rate limit is not exceeded
+   */
+  async removeTokens() {
+    await this.limiterPerSecond.removeTokens(1);
+    await this.limiterPerMinute.removeTokens(1);
   }
 }
