@@ -9,6 +9,7 @@ import { SummonerModule } from './summoner/summoner.module';
 import { SummonerService } from './summoner/summoner.service';
 import { LeagueApiModule } from './league-api/league-api.module';
 import { LeagueApiService } from './league-api/league-api.service';
+import { RateLimiterModule } from './rate-limiter/rate-limiter.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { LeagueApiService } from './league-api/league-api.service';
     MatchModule,
     SummonerModule,
     LeagueApiModule,
+    RateLimiterModule,
   ],
   controllers: [AppController],
   providers: [AppService, MatchService, SummonerService, LeagueApiService],
