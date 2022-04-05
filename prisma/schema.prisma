@@ -11,17 +11,18 @@ datasource db {
 }
 
 model Match {
-  matchId          String     @id
-  gameDuration     BigInt
-  gameCreation     BigInt
-  gameEndTimestamp BigInt
-  gameId           BigInt
-  gameName         String
-  gameType         String
-  gameMode         String
-  queueId          Int
-  summoner         Summoner[]
-  mapId            Int?
+  matchId            String     @id
+  gameDuration       BigInt
+  gameCreation       BigInt
+  gameEndTimestamp   BigInt?
+  gameStartTimestamp BigInt
+  gameId             BigInt
+  gameName           String
+  gameType           String
+  gameMode           String
+  queueId            Int
+  summoner           Summoner[]
+  mapId              Int?
 }
 
 model Summoner {

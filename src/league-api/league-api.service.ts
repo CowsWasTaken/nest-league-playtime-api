@@ -19,8 +19,8 @@ export class LeagueApiService {
   }
 
   private limiterPerMinute = new RateLimiter({
-    tokensPerInterval: LeagueApiConstants.rateLimitPerMinute,
-    interval: 'minute',
+    tokensPerInterval: LeagueApiConstants.rateLimitPerTwoMinutes,
+    interval: 140000,
   });
 
   private limiterPerSecond = new RateLimiter({
@@ -39,12 +39,12 @@ export class LeagueApiService {
    * @param tagLine tagline for example 'EUW', pass here without #
    * @return SummonerDtO
    */
-  async getPlayerPUUID(
+  async getSummoner(
     hostValue: HostValue,
     gameName: string,
     tagLine: string,
   ): Promise<SummonerDto> {
-    this.removeTokens();
+    await this.removeTokens();
 
     return axios
       .get(
@@ -74,7 +74,7 @@ export class LeagueApiService {
     puuid: string,
     matchQueryParameter?: MatchQueryParameter,
   ): Promise<string[]> {
-    this.removeTokens();
+    await this.removeTokens();
     let playerMatches_API_CALL = `${this.createBaseUrl(
       hostValue,
     )}/lol/match/v5/matches/by-puuid/${puuid}/ids?${this.api_query}`; // creates api call
@@ -99,7 +99,7 @@ export class LeagueApiService {
    * @param matchId id of the match
    */
   async getMatch(hostValue: HostValue, matchId: string): Promise<MatchDto> {
-    this.removeTokens();
+    const token = await this.removeTokens();
     return axios
       .get(
         `${this.createBaseUrl(hostValue)}/lol/match/v5/matches/${matchId}?${
@@ -110,7 +110,15 @@ export class LeagueApiService {
         console.log(`Fetched Match: ${matchId} `);
         return response.data as MatchDto;
       })
-      .catch((err) => Promise.reject(err));
+      .catch((err) => {
+        console.error(`error in getting match ${matchId}`);        
+        console.log(this.limiterPerMinute.curIntervalStart);
+        console.log(this.limiterPerMinute.getTokensRemaining());
+        console.log(this.limiterPerMinute.tokensThisInterval);
+        console.trace(err);
+
+        return Promise.reject(err);
+      });
   }
 
   private createBaseUrl(hostValue: HostValue): string {
@@ -121,7 +129,15 @@ export class LeagueApiService {
    * this should be called before making an http request, to ensure the rate limit is not exceeded
    */
   async removeTokens() {
-    await this.limiterPerSecond.removeTokens(1);
-    await this.limiterPerMinute.removeTokens(1);
+    console.log(this.limiterPerMinute.curIntervalStart);
+    console.log(this.limiterPerMinute.getTokensRemaining());
+    console.log(this.limiterPerMinute.tokensThisInterval);
+
+    const seconds = await this.limiterPerSecond.removeTokens(1);
+    const minutes = await this.limiterPerMinute.removeTokens(1);
+    return {
+      seconds,
+      minutes,
+    };
   }
 }

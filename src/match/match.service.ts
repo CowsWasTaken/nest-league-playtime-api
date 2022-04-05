@@ -6,20 +6,46 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class MatchService {
   constructor(private prisma: PrismaService) {}
 
-  async createMatch(dto: Match) {
-    // updates or creates entry for dto checking if matchId exists
-    const match = await this.prisma.match.upsert({
-      where: { matchId: dto.matchId },
-      update: dto,
-      create: dto,
-    });
-    return match;
-  }
-
   private async getExistingMatches(matchIds: string[]) {
     return this.prisma.match.findMany({
       where: {
         matchId: { in: matchIds },
+      },
+    });
+  }
+
+  async createMatch(match: Match, puuid: string) {
+    const {
+      gameCreation,
+      gameDuration,
+      gameEndTimestamp,
+      gameId,
+      gameMode,
+      gameName,
+      gameType,
+      mapId,
+      matchId,
+      queueId,
+      gameStartTimestamp,
+    } = match;
+    return this.prisma.match.create({
+      data: {
+        gameCreation,
+        gameDuration,
+        gameEndTimestamp,
+        gameStartTimestamp,
+        gameId,
+        gameMode,
+        gameName,
+        gameType,
+        mapId,
+        matchId,
+        queueId,
+        summoner: {
+          connect: {
+            puuid: puuid,
+          },
+        },
       },
     });
   }

@@ -1,4 +1,7 @@
 export const LeagueApiConstants = {
   rateLimitPerSecond: 20,
-  rateLimitPerMinute: 120,
+  rateLimitPerTwoMinutes: 100,
+  matchQueryParams: {
+    MAX_COUNT: 100,
+  },
 };
